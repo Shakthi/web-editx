@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Browser Editor</title>
+  <style> html, body, #editor { height: 100%; margin: 0; } </style>
+  <script src="https://unpkg.com/monaco-editor/min/vs/loader.js"></script>
+</head>
+<body>
+  <div>
+    <select id="fileList"></select>
+    <button onclick="saveFile()">Save</button>
+  </div>
+  <div id="editor"></div>
+
+  <script>
+    let editor, currentFile;
+
+    // Load Monaco
+    require.config({ paths: { vs: "https://unpkg.com/monaco-editor/min/vs" } });
+    require(["vs/editor/editor.main"], () => {
+      editor = monaco.editor.create(document.getElementById("editor"), {
+        value: "",
+        language: "javascript",
+        theme: "vs-dark"
+      });
+      loadFiles();
+    });
+
+    async function loadFiles() {
+      const res = await fetch("/api/files");
+      const files = await res.json();
+      const sel = document.getElementById("fileList");
+      sel.innerHTML = files.filter(f=>!f.isDir).map(f=>`<option>${f.name}</option>`).join("");
+      sel.onchange = () => openFile(sel.value);
+    }
+
+    async function openFile(name) {
+      const res = await fetch("/api/file?name=" + encodeURIComponent(name));
+      const { content } = await res.json();
+      currentFile = name;
+      editor.setValue(content);
+    }
+
+    async function saveFile() {
+      await fetch("/api/file", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: currentFile, content: editor.getValue() })
+      });
+      alert("Saved!");
+    }
+  </script>
+</body>
+</html>

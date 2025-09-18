@@ -1,0 +1,27 @@
+{
+  "name": "web-editx",
+  "version": "1.0.0",
+  "description": "Quick browser-based editor for local folders (npx web-editx .)",
+  "bin": {
+    "web-editx": "./bin/edit.js"
+  },
+  "type": "module",
+  "scripts": {
+    "start": "node ./bin/edit.js"
+  },
+  "keywords": [
+    "editor",
+    "browser",
+    "cli",
+    "npx",
+    "monaco",
+    "file-manager"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "open": "^9.1.0"
+  }
+}
+
