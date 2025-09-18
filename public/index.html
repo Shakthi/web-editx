@@ -59,6 +59,23 @@ Do you want to continue?`
       });
       alert("✅ File saved!");
     }
+
+    function closeEditor() {
+      navigator.sendBeacon("/api/close-session");
+    }
+
+    window.addEventListener("pagehide", (event) => {
+      closeEditor();
+      console.log("Page is being closed/unloaded.");
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") {
+        console.log("Tab hidden or closed, saving session...");
+        closeEditor();
+      }
+    });
   </script>
 </body>
+
 </html>
