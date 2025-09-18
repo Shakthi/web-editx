@@ -8,32 +8,35 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3000;
-const targetDir = path.resolve(process.argv[2] || process.cwd());
+
+// Get target file from CLI args
+const targetFile = path.resolve(process.argv[2] || process.cwd());
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../public")));
 
-// List files
-app.get("/api/files", async (req, res) => {
-  const files = await fs.readdir(targetDir, { withFileTypes: true });
-  res.json(files.map(f => ({ name: f.name, isDir: f.isDirectory() })));
-});
-
-// Read file
+// API: read file
 app.get("/api/file", async (req, res) => {
-  const filePath = path.join(targetDir, req.query.name);
-  const content = await fs.readFile(filePath, "utf8");
-  res.json({ content });
+  try {
+    const content = await fs.readFile(targetFile, "utf8");
+    res.json({ name: path.basename(targetFile), content });
+  } catch (err) {
+    res.status(500).json({ error: "Could not read file", details: err.message });
+  }
 });
 
-// Save file
+// API: save file
 app.post("/api/file", async (req, res) => {
-  const filePath = path.join(targetDir, req.body.name);
-  await fs.writeFile(filePath, req.body.content, "utf8");
-  res.json({ success: true });
+  try {
+    await fs.writeFile(targetFile, req.body.content, "utf8");
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Could not save file", details: err.message });
+  }
 });
 
 app.listen(PORT, () => {
-  console.log(`📂 WebEditX running at http://localhost:${PORT}`);
+  console.log(`📝 Editing ${targetFile}`);
+  console.log(`➡️  Open http://localhost:${PORT} to edit in browser`);
   open(`http://localhost:${PORT}`);
 });
