@@ -65,13 +65,13 @@ app.listen(PORT, () => {
 
     (async () => {
       const tunnel = await localtunnel({ port: PORT });
-        
+
       // fetch tunnel password
       //curl https://loca.lt/mytunnelpassword
-        let password = await getPassword();
-        console.log(`\n🔑 Local tunnel password: ${password}`) ;
+      let password = await getPassword();
 
-      console.log(`➡️  Open ${tunnel.url} to edit in browser`); 
+      console.log(`\n➡️  Open ${tunnel.url} to edit in browser`);
+      console.log(`🔑 Local tunnel password: ${password}`);
 
       tunnel.on('close', () => {
         // tunnels are closed
