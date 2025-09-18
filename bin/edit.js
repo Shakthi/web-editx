@@ -36,7 +36,16 @@ app.post("/api/file", async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`📝 Editing ${targetFile}`);
-  console.log(`➡️  Open http://localhost:${PORT} to edit in browser`);
-  open(`http://localhost:${PORT}`);
+    console.log(`📝 Editing ${targetFile}`);
+    console.log(`➡️  Open http://localhost:${PORT} to edit in browser`);
+    open(`http://localhost:${PORT}`);
+}).on("error", (err) => {
+    if (err.code === "EADDRINUSE") {
+        //Generate random 4 digit 3000+ port
+        const NEWPORT = Math.floor(Math.random() * 9000) + 3000;
+        console.error(`❌ Port ${PORT} already in use. Try another: PORT=${NEWPORT} npx web-editx ${process.argv[2]}`);
+        process.exit(1);
+    } else {
+        throw err;
+    }
 });
