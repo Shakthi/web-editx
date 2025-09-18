@@ -17,7 +17,7 @@
     "monaco",
     "file-manager"
   ],
-  "author": "Your Name",
+  "author": "Shakthi Prasad GS",
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
