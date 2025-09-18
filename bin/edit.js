@@ -69,12 +69,8 @@ app.listen(PORT, () => {
       // fetch tunnel password
       //curl https://loca.lt/mytunnelpassword
         let password = await getPassword();
-        console.log(`🔑 Local tunnel password: ${password}`) ;
+        console.log(`\n🔑 Local tunnel password: ${password}`) ;
 
-      
-
-      // the assigned public url for your tunnel
-      // i.e. https://abcdefgjhij.localtunnel.me
       console.log(`➡️  Open ${tunnel.url} to edit in browser`); 
 
       tunnel.on('close', () => {
