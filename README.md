@@ -58,7 +58,7 @@ Environment variables:
 Clone the repo:
 
 ```bash
-git clone https://github.com/yourusername/web-editx.git
+git clone https://github.com/shakthi/web-editx.git
 cd web-editx
 npm install
 npm link

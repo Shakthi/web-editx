@@ -18,6 +18,9 @@
     "file-manager"
   ],
   "author": "Shakthi Prasad GS",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shakthi/web-editx"},
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
