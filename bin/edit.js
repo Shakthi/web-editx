@@ -64,7 +64,7 @@ app.listen(PORT, () => {
   if (isLocaltunnel) {
 
     (async () => {
-      const tunnel = await localtunnel({ port: PORT });
+      const tunnel = await localtunnel( PORT );
 
       // fetch tunnel password
       //curl https://loca.lt/mytunnelpassword
