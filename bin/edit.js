@@ -3,6 +3,7 @@ import express from "express";
 import open from "open";
 import path from "path";
 import fs from "fs/promises";
+import { randomUUID } from "crypto";
 import { fileURLToPath } from "url";
 import localtunnel from 'localtunnel'
 
@@ -14,6 +15,7 @@ const PORT = process.env.PORT || 3000;
 // Get target file from CLI args
 const targetFile = path.resolve(process.argv[2] || process.cwd());
 const isLocaltunnel = process.argv[3] === "--localtunnel";
+let activeSessionId = null;
 
 async function ensureTargetFile(filePath) {
   try {
@@ -40,7 +42,9 @@ app.use(express.static(path.join(__dirname, "../public")));
 app.get("/api/file", async (req, res) => {
   try {
     const content = await fs.readFile(targetFile, "utf8");
-    res.json({ name: path.basename(targetFile), content });
+    const sessionId = randomUUID();
+    activeSessionId = sessionId;
+    res.json({ name: path.basename(targetFile), content, sessionId });
   } catch (err) {
     res.status(500).json({ error: "Could not read file", details: err.message });
   }
@@ -70,10 +74,26 @@ app.post("/api/file", async (req, res) => {
 
 app.post("/api/close-session", async (req, res) => {
   try {
+    const { sessionId } = req.body || {};
+
+    if (!sessionId) {
+      res.status(400).json({ error: "Missing sessionId" });
+      return;
+    }
+
+    if (sessionId !== activeSessionId) {
+      console.log(`Ignoring close-session for inactive session: ${sessionId}`);
+      res.json({ success: false, ignored: true });
+      return;
+    }
+
+    activeSessionId = null;
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "Could not close session", details: err.message });
+    return;
   }
+
   setImmediate(() => {
     console.log("Received close-session request, Closing session...");
     process.exit();

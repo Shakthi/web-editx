@@ -18,7 +18,7 @@
   <div id="editor"></div>
 
   <script>
-    let editor, currentFile;
+    let editor, currentFile, sessionId = null, hasClosedSession = false;
     if (!location.host.includes("localhost")) {
   const proceed = confirm(
     `⚠️ Security Warning
@@ -41,9 +41,10 @@ Do you want to continue?`
     require.config({ paths: { vs: "https://unpkg.com/monaco-editor/min/vs" } });
     require(["vs/editor/editor.main"], async () => {
       const res = await fetch("/api/file");
-      const { name, content } = await res.json();
+      const { name, content, sessionId: newSessionId } = await res.json();
       document.getElementById("filename").textContent = name;
       currentFile = name;
+      sessionId = newSessionId;
       editor = monaco.editor.create(document.getElementById("editor"), {
         value: content,
         language: "shell",
@@ -70,7 +71,16 @@ Do you want to continue?`
   });
 
     function closeEditor() {
-      navigator.sendBeacon("/api/close-session");
+      if (!sessionId || hasClosedSession) {
+        return;
+      }
+
+      const payload = new Blob([JSON.stringify({ sessionId })], { type: "application/json" });
+      const success = navigator.sendBeacon("/api/close-session", payload);
+
+      if (success) {
+        hasClosedSession = true;
+      }
     }
 
     window.addEventListener("pagehide", (event) => {
