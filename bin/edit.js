@@ -50,6 +50,19 @@ app.post("/api/file", async (req, res) => {
   }
 });
 
+app.post("/api/close-session", async (req, res) => {
+  try {
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Could not close session", details: err.message });
+  }
+  setImmediate(() => {
+    console.log("Received close-session request, Closing session...");
+    process.exit();
+  });
+  
+});
+
 app.listen(PORT, () => {
     console.log(`📝 Editing ${targetFile}`);
 
@@ -58,7 +71,7 @@ app.listen(PORT, () => {
       open(`http://localhost:${PORT}`);
 
       console.log(`\nNot able to access http://localhost:${PORT} ?`);
-      console.log(`Try this  tunnel with localtunnel: npx web-editx ${process.argv[2] } --localtunnel`); 
+      console.log(`Try tunneling this with localtunnel: npx web-editx ${process.argv[2] } --localtunnel`); 
     }
 
   if (isLocaltunnel) {
@@ -74,7 +87,8 @@ app.listen(PORT, () => {
       console.log(`🔑 Local tunnel password: ${password}`);
 
       tunnel.on('close', () => {
-        // tunnels are closed
+        console.log('Tunnel closed');
+        app.exit();
       });
     })();
   }

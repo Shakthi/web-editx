@@ -51,14 +51,40 @@ Do you want to continue?`
       });
     });
 
-    async function saveFile() {
+    async function saveFile(shouldAlert = true) {
       await fetch("/api/file", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: editor.getValue() })
       });
-      alert("✅ File saved!");
+      if(shouldAlert)
+        alert("✅ File saved!");
     }
+
+    document.addEventListener("keydown", function (e) {
+    // Check for Ctrl+S (or Cmd+S on Mac)
+    if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+      e.preventDefault(); // Stop browser default "Save Page As..."
+      saveFile(); // Call your custom save logic
+    }
+  });
+
+    function closeEditor() {
+      navigator.sendBeacon("/api/close-session");
+    }
+
+    window.addEventListener("pagehide", (event) => {
+      closeEditor();
+      console.log("Page is being closed/unloaded.");
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") {
+        console.log("Tab hidden or closed, saving session...");
+        closeEditor();
+      }
+    });
   </script>
 </body>
+
 </html>
