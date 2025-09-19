@@ -15,6 +15,24 @@ const PORT = process.env.PORT || 3000;
 const targetFile = path.resolve(process.argv[2] || process.cwd());
 const isLocaltunnel = process.argv[3] === "--localtunnel";
 
+async function ensureTargetFile(filePath) {
+  try {
+    const stats = await fs.stat(filePath);
+    if (!stats.isFile()) {
+      console.error("Target is not a file:", filePath);
+      process.exit(1);
+    }
+  } catch (err) {
+    if (err.code === "ENOENT") {
+      console.error("Target file does not exist:", filePath);
+    } else {
+      console.error("Unable to access target file:", err.message);
+    }
+    process.exit(1);
+  }
+}
+
+await ensureTargetFile(targetFile);
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../public")));
 
