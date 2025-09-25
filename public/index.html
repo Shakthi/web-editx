@@ -22,6 +22,7 @@
   <script>
     let editor, currentFile, sessionId = null, hasClosedSession = false;
     let lastSavedValue = "";
+    let isSaving = false;
 
     const SECURITY_COOKIE = "webeditxSecurityAccepted";
     const SECURITY_COOKIE_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
@@ -90,7 +91,7 @@ Do you want to continue?`
       const res = await fetch("/api/file");
       const { name, content, sessionId: newSessionId } = await res.json();
       document.getElementById("filename").textContent = name;
-      updateSaveStatus(true);
+      updateSaveStatus("saved");
       currentFile = name;
       sessionId = newSessionId;
       editor = monaco.editor.create(document.getElementById("editor"), {
@@ -99,7 +100,7 @@ Do you want to continue?`
         theme: "vs-dark"
       });
       lastSavedValue = content;
-      updateSaveStatus(true);
+      updateSaveStatus("saved");
 
       editor.onDidChangeModelContent(() => {
         if (!editor) {
@@ -107,13 +108,15 @@ Do you want to continue?`
         }
 
         const hasUnsavedChanges = editor.getValue() !== lastSavedValue;
-        updateSaveStatus(!hasUnsavedChanges);
+        updateSaveStatus(hasUnsavedChanges ? "unsaved" : "saved");
       });
     });
 
     async function saveFile(shouldAlert = true) {
       try {
         const payload = editor.getValue();
+        isSaving = true;
+        updateSaveStatus("saving");
         const response = await fetch("/api/file", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -130,17 +133,19 @@ Do you want to continue?`
         }
 
         lastSavedValue = payload;
-        updateSaveStatus(true);
+        updateSaveStatus("saved");
 
         if (shouldAlert) {
           alert("✅ File saved!");
         }
       } catch (error) {
         console.error("Failed to save file", error);
-        updateSaveStatus(false);
+        updateSaveStatus("unsaved");
         if (shouldAlert) {
           alert("❌ Failed to save file. Check console for details.");
         }
+      } finally {
+        isSaving = false;
       }
     }
 
@@ -152,16 +157,26 @@ Do you want to continue?`
     }
   });
 
-    function updateSaveStatus(isSaved) {
+    function updateSaveStatus(state) {
+      if (isSaving && state === "saved" && editor?.getValue() !== lastSavedValue) {
+        state = "unsaved";
+      }
+
       const el = document.getElementById("save-status");
       if (!el) {
         return;
       }
 
-      if (isSaved) {
-        el.textContent = "💾 Saved";
-      } else {
-        el.textContent = "⚠️ Unsaved changes";
+      switch (state) {
+        case "saving":
+          el.textContent = "💾 Saving...";
+          break;
+        case "unsaved":
+          el.textContent = "⚠️ Unsaved changes";
+          break;
+        default:
+          el.textContent = "💾 Saved";
+          break;
       }
     }
 
