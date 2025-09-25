@@ -19,9 +19,52 @@
 
   <script>
     let editor, currentFile, sessionId = null, hasClosedSession = false;
+
+    const SECURITY_COOKIE = "webeditxSecurityAccepted";
+    const SECURITY_COOKIE_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
+
+    function setClientSecurityCookie() {
+      document.cookie = `${encodeURIComponent(SECURITY_COOKIE)}=true; path=/; max-age=${SECURITY_COOKIE_MAX_AGE_SECONDS}`;
+    }
+
+    function getCookie(name) {
+      const prefixed = `${encodeURIComponent(name)}=`;
+      const encodedValue = document.cookie
+        .split(/; */)
+        .find((entry) => entry.startsWith(prefixed))
+        ?.slice(prefixed.length);
+
+      return encodedValue ? decodeURIComponent(encodedValue) : undefined;
+    }
+
+    async function persistSecurityConsent() {
+      try {
+        const res = await fetch("/api/security-consent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accepted: true })
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+
+        const payload = await res.json();
+        if (!payload?.success) {
+          throw new Error("Missing success flag");
+        }
+      } catch (err) {
+        console.warn("Falling back to client-set security cookie:", err);
+        setClientSecurityCookie();
+      }
+    }
+
     if (!location.host.includes("localhost")) {
-  const proceed = confirm(
-    `⚠️ Security Warning: Understand the risks before proceeding:
+      const alreadyAccepted = getCookie(SECURITY_COOKIE) === "true";
+
+      if (!alreadyAccepted) {
+        const proceed = confirm(
+          `⚠️ Security Warning: Understand the risks before proceeding:
 
 1. Your file data may be readable by the tunnel.
 2. Browser extensions and third-party npm scripts might access the data.
@@ -29,12 +72,15 @@
 4. There is currently no ideal way to encrypt this data end-to-end here.
 
 Do you want to continue?`
-  );
+        );
 
-  if (!proceed) {
-    throw new Error("User declined due to security risks.");
-  }
-}
+        if (!proceed) {
+          throw new Error("User declined due to security risks.");
+        }
+
+        persistSecurityConsent();
+      }
+    }
 
     require.config({ paths: { vs: "https://unpkg.com/monaco-editor@0.52.2/min/vs" } });
     require(["vs/editor/editor.main"], async () => {

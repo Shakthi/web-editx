@@ -11,11 +11,38 @@ import localtunnel from 'localtunnel'
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3000;
+const SECURITY_COOKIE_NAME = "webeditxSecurityAccepted";
+const SECURITY_COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 // Get target file from CLI args
 const targetFile = path.resolve(process.argv[2] || process.cwd());
 const isLocaltunnel = process.argv[3] === "--localtunnel";
 let activeSessionId = null;
+
+app.set("trust proxy", true);
+
+function resolveSecurityCookieOptions(req) {
+  const hostHeader = req.headers.host || "";
+  const hostname = req.hostname || hostHeader.split(":")[0] || "";
+  const options = {
+    path: "/",
+    maxAge: SECURITY_COOKIE_MAX_AGE_MS,
+    httpOnly: false,
+  };
+
+  const isHttps = req.secure || req.protocol === "https";
+
+  if (hostname.endsWith(".loca.lt")) {
+    options.domain = ".loca.lt";
+    options.secure = true;
+    options.sameSite = "None";
+  } else {
+    options.secure = isHttps;
+    options.sameSite = "Lax";
+  }
+
+  return options;
+}
 
 async function ensureTargetFile(filePath) {
   try {
@@ -61,6 +88,16 @@ async function getPassword() {
     throw err;
   }
 }
+
+app.post("/api/security-consent", (req, res) => {
+  try {
+    res.cookie(SECURITY_COOKIE_NAME, "true", resolveSecurityCookieOptions(req));
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to persist security consent cookie:", err);
+    res.status(500).json({ error: "Could not persist security consent" });
+  }
+});
 
 // API: save file
 app.post("/api/file", async (req, res) => {
