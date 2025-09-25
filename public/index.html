@@ -6,6 +6,7 @@
   <style>
     html, body, #editor { height: 100%; margin: 0; }
     #toolbar { padding: 6px; background: #222; color: #eee; }
+    #save-status { margin-left: 12px; }
     button { margin-left: 10px; }
   </style>
   <script src="https://unpkg.com/monaco-editor@0.52.2/min/vs/loader.js"></script>
@@ -13,12 +14,14 @@
 <body>
   <div id="toolbar">
     <span id="filename"></span>
+    <span id="save-status">💾 Saved</span>
     <button onclick="saveFile()">💾 Save</button>
   </div>
   <div id="editor"></div>
 
   <script>
     let editor, currentFile, sessionId = null, hasClosedSession = false;
+    let lastSavedValue = "";
 
     const SECURITY_COOKIE = "webeditxSecurityAccepted";
     const SECURITY_COOKIE_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
@@ -87,6 +90,7 @@ Do you want to continue?`
       const res = await fetch("/api/file");
       const { name, content, sessionId: newSessionId } = await res.json();
       document.getElementById("filename").textContent = name;
+      updateSaveStatus(true);
       currentFile = name;
       sessionId = newSessionId;
       editor = monaco.editor.create(document.getElementById("editor"), {
@@ -94,16 +98,50 @@ Do you want to continue?`
         language: "shell",
         theme: "vs-dark"
       });
+      lastSavedValue = content;
+      updateSaveStatus(true);
+
+      editor.onDidChangeModelContent(() => {
+        if (!editor) {
+          return;
+        }
+
+        const hasUnsavedChanges = editor.getValue() !== lastSavedValue;
+        updateSaveStatus(!hasUnsavedChanges);
+      });
     });
 
     async function saveFile(shouldAlert = true) {
-      await fetch("/api/file", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: editor.getValue() })
-      });
-      if(shouldAlert)
-        alert("✅ File saved!");
+      try {
+        const payload = editor.getValue();
+        const response = await fetch("/api/file", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: payload })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const { success } = await response.json();
+        if (!success) {
+          throw new Error("Save did not return success flag");
+        }
+
+        lastSavedValue = payload;
+        updateSaveStatus(true);
+
+        if (shouldAlert) {
+          alert("✅ File saved!");
+        }
+      } catch (error) {
+        console.error("Failed to save file", error);
+        updateSaveStatus(false);
+        if (shouldAlert) {
+          alert("❌ Failed to save file. Check console for details.");
+        }
+      }
     }
 
     document.addEventListener("keydown", function (e) {
@@ -113,6 +151,19 @@ Do you want to continue?`
       saveFile(); // Call your custom save logic
     }
   });
+
+    function updateSaveStatus(isSaved) {
+      const el = document.getElementById("save-status");
+      if (!el) {
+        return;
+      }
+
+      if (isSaved) {
+        el.textContent = "💾 Saved";
+      } else {
+        el.textContent = "⚠️ Unsaved changes";
+      }
+    }
 
     function closeEditor() {
       if (!sessionId || hasClosedSession) {
