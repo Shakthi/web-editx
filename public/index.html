@@ -13,9 +13,9 @@
 </head>
 <body>
   <div id="toolbar">
-    <span id="filename"></span>
-    <span id="save-status">💾 Saved</span>
+    <span id="filename"></span>    
     <button onclick="saveFile()">💾 Save</button>
+    <span id="save-status"></span>
   </div>
   <div id="editor"></div>
 
@@ -169,13 +169,13 @@ Do you want to continue?`
 
       switch (state) {
         case "saving":
-          el.textContent = "💾 Saving...";
+          el.textContent = "(Saving...)";
           break;
         case "unsaved":
-          el.textContent = "⚠️ Unsaved changes";
+          el.textContent = "(⚠️ Unsaved changes)";
           break;
         default:
-          el.textContent = "💾 Saved";
+          el.textContent = "";
           break;
       }
     }
