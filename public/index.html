@@ -21,9 +21,7 @@
     let editor, currentFile, sessionId = null, hasClosedSession = false;
     if (!location.host.includes("localhost")) {
   const proceed = confirm(
-    `⚠️ Security Warning
-
-Understand the risks before proceeding:
+    `⚠️ Security Warning: Understand the risks before proceeding:
 
 1. Your file data may be readable by the tunnel.
 2. Browser extensions and third-party npm scripts might access the data.
