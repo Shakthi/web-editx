@@ -38,7 +38,7 @@ Do you want to continue?`
   }
 }
 
-    require.config({ paths: { vs: "https://unpkg.com/monaco-editor/min/vs" } });
+    require.config({ paths: { vs: "https://unpkg.com/monaco-editor@0.52.2/min/vs" } });
     require(["vs/editor/editor.main"], async () => {
       const res = await fetch("/api/file");
       const { name, content, sessionId: newSessionId } = await res.json();
