@@ -153,7 +153,7 @@ Do you want to continue?`
     // Check for Ctrl+S (or Cmd+S on Mac)
     if ((e.ctrlKey || e.metaKey) && e.key === "s") {
       e.preventDefault(); // Stop browser default "Save Page As..."
-      saveFile(); // Call your custom save logic
+      saveFile(false); // Call your custom save logic
     }
   });
 
