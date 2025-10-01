@@ -68,6 +68,10 @@ app.use(express.static(path.join(__dirname, "../public")));
 // API: read file
 app.get("/api/file", async (req, res) => {
   try {
+    if (activeSessionId != null) {
+      throw new Error("Session already exists");
+    }
+
     const content = await fs.readFile(targetFile, "utf8");
     const sessionId = randomUUID();
     activeSessionId = sessionId;

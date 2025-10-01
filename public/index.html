@@ -440,6 +440,16 @@
     require.config({ paths: { vs: "https://unpkg.com/monaco-editor@0.52.2/min/vs" } });
     require(["vs/editor/editor.main"], async () => {
       const res = await fetch("/api/file");
+      if (!res.ok) {
+         const {error, details} =  await res.json();
+         if(details=="Session already exists"){
+          setTimeout(() => {
+            alert("You are already connected to the file in another tab. Please close tab and start a new session"); 
+          }, 600);
+           
+         }
+         return;
+      }
       const { name, fullPath, content, sessionId: newSessionId } = await res.json();
       const displayPath = fullPath || name;
       const filenameEl = document.getElementById("filename");
@@ -600,15 +610,11 @@
       }
     }
 
-    window.addEventListener("pagehide", () => {
+    window.addEventListener("beforeunload", () => {
       closeEditor();
     });
 
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "hidden") {
-        closeEditor();
-      }
-    });
+
   </script>
 </body>
 </html>
