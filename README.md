@@ -29,25 +29,6 @@ npx web-editx myfile.txt
 - 🔒 **Local-first** — runs only on your machine unless you opt in to tunneling  
 - 🎨 **Syntax highlighting** (planned) — auto-detect based on file extension  
 
----
-
-## 📝 Change Notes
-
-### v1.4.0 (unreleased)
-
-**Changed**  
-- Refreshed the browser UI with a slimmer toolbar and denser layout so the Monaco editor gets nearly the full viewport (`bbc07ec`, `a3165e7`).  
-- Reworked status feedback: the save button, inline pill, and toast notifications now show saving/unsaved/success states without blocking alerts (`0bebe28`, `d5a9bc0`, `56e6b5e`).  
-- Security warning dialog is clearer and, once accepted, the consent is remembered via a `/api/security-consent` endpoint and cookie (`c26e48c`, `0a78169`).  
-
-**Added**  
-- `/api/file` now returns `fullPath`; the toolbar displays that path with monospace truncation and tooltip to avoid editing the wrong file.  
-
-### v1.3.x
-
-- Minor styling refinements and security-copy tweaks captured in patch releases (`v1.3.1` – `v1.3.3-alpha.0`).
-
----
 
 ## 📦 Example Usage
 
@@ -106,12 +87,14 @@ npx web-editx test.txt
 
 ---
 
-## 📌 Roadmap
+## 📝 Change Notes
 
-- [ ] Syntax highlighting based on file extension  
-- [ ] Support for multiple files / folder browsing  
-- [ ] Optional authentication for remote usage  
-  
+### v1.4.0 (unreleased)
+
+**Changed**  
+- Refreshed the browser UI with a slimmer toolbar and denser layout so the Monaco editor gets nearly the full viewport 
+- Reworked status feedback: toast notifications now show saving/unsaved/success states 
+- Security warning dialog is clearer and, once accepted, the consent is remembered via  localtunnel cookie 
 
 ---
 
