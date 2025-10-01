@@ -8,69 +8,54 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --color-bg: #050816;
-      --color-bg-gradient: radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.28) 0%, transparent 55%),
-        radial-gradient(circle at 100% 0%, rgba(14, 165, 233, 0.24) 0%, transparent 48%),
-        linear-gradient(135deg, rgba(15, 23, 42, 0.92) 0%, rgba(2, 6, 23, 0.94) 100%);
-      --color-surface: rgba(15, 23, 42, 0.82);
-      --color-border: rgba(148, 163, 184, 0.18);
-      --color-overlay: rgba(148, 163, 184, 0.08);
-      --color-text: #e2e8f0;
-      --color-subtle: #94a3b8;
-      --color-accent: #6366f1;
-      --color-accent-strong: #4338ca;
-      --color-success: #22c55e;
-      --color-warning: #facc15;
-      --color-error: #f87171;
-      --radius-lg: 18px;
+      --page-bg: #0f172a;
+      --surface-bg: #111c35;
+      --surface-border: #1e2a45;
+      --surface-raised: #152444;
+      --text-primary: #e2e8f0;
+      --text-secondary: #94a3b8;
+      --accent: #4f46e5;
+      --accent-strong: #4338ca;
+      --success: #22c55e;
+      --warning: #facc15;
+      --error: #f87171;
+      --radius-md: 14px;
       --radius-pill: 999px;
-      --shadow-soft: 0 35px 60px -32px rgba(15, 23, 42, 0.9);
-      --transition-base: 180ms cubic-bezier(0.4, 0, 0.2, 1);
-      font-family: "Inter", "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+      --shadow: 0 18px 36px -28px rgba(15, 23, 42, 0.75);
+      --font-family: "Inter", "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
     * {
       box-sizing: border-box;
     }
 
-    html, body {
+    html,
+    body {
       height: 100%;
     }
 
     body {
       margin: 0;
-      background: var(--color-bg);
-      background-image: var(--color-bg-gradient);
-      color: var(--color-text);
-      display: flex;
-      justify-content: center;
-      align-items: stretch;
       min-height: 100vh;
-      padding: clamp(16px, 3vw, 32px);
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 0;
+      background: var(--page-bg);
+      font-family: var(--font-family);
+      color: var(--text-primary);
       -webkit-font-smoothing: antialiased;
     }
 
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(circle at 50% 120%, rgba(99, 102, 241, 0.2), transparent 60%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
     .app-shell {
-      position: relative;
-      z-index: 1;
-      width: min(1200px, 100%);
+      width: 100%;
       display: flex;
       flex-direction: column;
-      min-height: clamp(640px, 85vh, 940px);
-      background: var(--color-surface);
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--color-border);
-      backdrop-filter: blur(26px);
-      box-shadow: var(--shadow-soft);
+      min-height: 100vh;
+      background: var(--surface-bg);
+      border-radius: 0;
+      border: none;
+      box-shadow: none;
       overflow: hidden;
     }
 
@@ -78,124 +63,151 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: clamp(14px, 2vw, 20px) clamp(18px, 2.5vw, 28px);
-      background: linear-gradient(180deg, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.7) 100%);
-      border-bottom: 1px solid var(--color-border);
-      gap: 18px;
+      gap: 12px;
+      padding: 12px clamp(16px, 3vw, 24px);
+      background: var(--surface-raised);
+      border-bottom: 1px solid var(--surface-border);
+      flex-wrap: wrap;
     }
 
-    .toolbar-left,
-    .toolbar-right {
+    .brand {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 10px;
+      min-width: 0;
+      flex: 0 1 auto;
+    }
+
+    .brand-mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: var(--accent);
+      font-weight: 600;
+      font-size: 0.85rem;
+      letter-spacing: 0.06em;
+      color: #f8fafc;
+      flex-shrink: 0;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .brand-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: 0.02em;
+    }
+
+    .brand-subtitle {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+    }
+
+    .session-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1 1 auto;
+      min-width: 200px;
     }
 
     .file-badge {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
-      padding: 8px 16px;
-      background: rgba(99, 102, 241, 0.14);
+      gap: 6px;
+      padding: 6px 12px;
       border-radius: var(--radius-pill);
-      border: 1px solid rgba(99, 102, 241, 0.28);
-      color: #f8fafc;
-      font-weight: 600;
-      letter-spacing: 0.01em;
+      border: 1px solid rgba(79, 70, 229, 0.24);
+      background: rgba(79, 70, 229, 0.1);
+      font-weight: 500;
+      font-size: 0.85rem;
+      max-width: clamp(140px, 24vw, 260px);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
 
     .file-badge__icon {
       display: inline-flex;
-      width: 22px;
-      height: 22px;
-      align-items: center;
       justify-content: center;
-      border-radius: 10px;
-      background: rgba(99, 102, 241, 0.25);
-      color: rgba(226, 232, 240, 0.86);
-      font-size: 0.85rem;
-    }
-
-    .file-badge__name {
-      white-space: nowrap;
-      max-width: clamp(140px, 18vw, 320px);
-      overflow: hidden;
-      text-overflow: ellipsis;
+      align-items: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 5px;
+      background: rgba(79, 70, 229, 0.22);
+      font-size: 0.7rem;
     }
 
     .status-pill {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
-      padding: 6px 14px;
+      gap: 6px;
+      padding: 5px 12px;
       border-radius: var(--radius-pill);
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       font-weight: 500;
-      letter-spacing: 0.01em;
-      background: rgba(148, 163, 184, 0.14);
-      color: var(--color-subtle);
-      transition: background var(--transition-base), color var(--transition-base);
+      background: rgba(148, 163, 184, 0.16);
+      color: var(--text-secondary);
     }
 
     .status-pill::before {
       content: "";
-      width: 9px;
-      height: 9px;
+      width: 7px;
+      height: 7px;
       border-radius: 999px;
       background: currentColor;
-      box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.18);
-      transition: transform 180ms ease, box-shadow 220ms ease;
     }
 
     .status-pill[data-state="saving"] {
-      color: var(--color-warning);
       background: rgba(250, 204, 21, 0.16);
-    }
-
-    .status-pill[data-state="saving"]::before {
-      box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.12);
-      animation: pulse 1.2s ease-in-out infinite;
+      color: var(--warning);
     }
 
     .status-pill[data-state="unsaved"] {
-      color: #fbbf24;
       background: rgba(250, 204, 21, 0.12);
+      color: var(--warning);
     }
 
     .status-pill[data-state="saved"] {
-      color: var(--color-success);
       background: rgba(34, 197, 94, 0.12);
+      color: var(--success);
     }
 
-    .status-pill[data-state="saved"]::before {
-      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.14);
-      transform: scale(1.12);
+    .toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     button {
       border: none;
-      background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-strong) 100%);
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
       color: #f8fafc;
       font-weight: 600;
       letter-spacing: 0.01em;
-      padding: 0 20px;
-      height: 42px;
-      border-radius: 12px;
+      padding: 0 18px;
+      height: 36px;
+      border-radius: 10px;
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       cursor: pointer;
-      box-shadow: 0 12px 24px -12px rgba(99, 102, 241, 0.6);
-      transition: transform var(--transition-base), box-shadow var(--transition-base), filter 160ms ease;
-    }
-
-    button span {
-      pointer-events: none;
+      transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
+      box-shadow: 0 10px 20px -14px rgba(79, 70, 229, 0.55);
     }
 
     button:hover {
       transform: translateY(-1px);
-      box-shadow: 0 16px 30px -18px rgba(99, 102, 241, 0.72);
+      box-shadow: 0 16px 32px -18px rgba(79, 70, 229, 0.7);
     }
 
     button:active {
@@ -214,26 +226,24 @@
       width: 16px;
       height: 16px;
       border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.65);
-      border-top-color: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.6);
+      border-top-color: rgba(255, 255, 255, 0.15);
       animation: spin 800ms linear infinite;
     }
 
     .workspace {
       flex: 1;
-      padding: clamp(16px, 3vw, 28px);
       display: flex;
+      padding: clamp(12px, 2vw, 20px);
     }
 
     .editor-card {
-      position: relative;
       flex: 1;
       display: flex;
-      background: rgba(2, 6, 23, 0.88);
-      border-radius: var(--radius-lg);
-      border: 1px solid rgba(30, 41, 59, 0.75);
+      background: rgba(9, 16, 34, 0.96);
+      border-radius: 10px;
+      border: 1px solid rgba(30, 41, 59, 0.6);
       overflow: hidden;
-      box-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.08), 0 20px 40px -28px rgba(12, 15, 28, 0.9);
     }
 
     #editor {
@@ -248,26 +258,26 @@
       min-width: 220px;
       max-width: clamp(220px, 32vw, 320px);
       padding: 14px 18px;
-      border-radius: 16px;
+      border-radius: 12px;
       background: rgba(15, 23, 42, 0.92);
       border: 1px solid rgba(99, 102, 241, 0.28);
-      color: var(--color-text);
+      color: var(--text-primary);
       font-weight: 500;
       opacity: 0;
       transform: translateY(16px);
       pointer-events: none;
       transition: opacity 200ms ease, transform 200ms ease;
-      box-shadow: 0 24px 45px -32px rgba(8, 15, 40, 0.9);
+      box-shadow: 0 18px 32px -24px rgba(8, 15, 40, 0.8);
       z-index: 10;
     }
 
     .toast[data-type="success"] {
-      border-color: rgba(34, 197, 94, 0.32);
+      border-color: rgba(34, 197, 94, 0.3);
       color: #bbf7d0;
     }
 
     .toast[data-type="error"] {
-      border-color: rgba(248, 113, 113, 0.48);
+      border-color: rgba(248, 113, 113, 0.45);
       color: #fecaca;
     }
 
@@ -276,54 +286,36 @@
       transform: translateY(0);
     }
 
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    @keyframes pulse {
-      0%,
-      100% {
-        transform: scale(1);
-        opacity: 0.8;
-      }
-      50% {
-        transform: scale(1.2);
-        opacity: 1;
-      }
-    }
-
     @media (max-width: 860px) {
       .toolbar {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: stretch;
       }
 
-      .toolbar-right {
+      .brand,
+      .session-meta,
+      .toolbar-actions {
         width: 100%;
+      }
+
+      .session-meta,
+      .toolbar-actions {
         justify-content: space-between;
       }
 
-      button {
-        width: 100%;
-        justify-content: center;
-      }
-
-      .file-badge {
-        padding: 8px 12px;
+      .toolbar-actions button {
         width: 100%;
         justify-content: center;
       }
 
       .workspace {
-        padding: 16px;
+        padding: 12px;
       }
     }
 
     @media (max-width: 520px) {
       body {
-        padding: 12px;
+        padding: 8px;
       }
 
       .toast {
@@ -332,20 +324,33 @@
         bottom: 16px;
       }
     }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
   </style>
   <script src="https://unpkg.com/monaco-editor@0.52.2/min/vs/loader.js"></script>
 </head>
 <body>
   <div class="app-shell">
     <header id="toolbar" class="toolbar">
-      <div class="toolbar-left">
+      <div class="brand" aria-label="WebEditX brand">
+        <span class="brand-mark" aria-hidden="true">WX</span>
+        <div class="brand-text">
+          <span class="brand-title">WebEditX</span>
+          <span class="brand-subtitle">Remote editing, simplified</span>
+        </div>
+      </div>
+      <div class="session-meta">
         <div class="file-badge" title="Active file">
           <span class="file-badge__icon" aria-hidden="true">▣</span>
-          <span id="filename" class="file-badge__name">Loading…</span>
+          <span id="filename">Loading…</span>
         </div>
         <div id="save-status" class="status-pill" data-state="loading">Loading…</div>
       </div>
-      <div class="toolbar-right">
+      <div class="toolbar-actions">
         <button id="save-button" type="button" onclick="saveFile()">
           <span aria-hidden="true">💾</span>
           <span>Save</span>
@@ -429,6 +434,7 @@
       if (filenameEl) {
         filenameEl.textContent = name;
       }
+      document.title = `WebEditX · ${name}`;
       currentFile = name;
       sessionId = newSessionId;
       editor = monaco.editor.create(document.getElementById("editor"), {
