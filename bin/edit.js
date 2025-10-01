@@ -68,13 +68,14 @@ app.use(express.static(path.join(__dirname, "../public")));
 // API: read file
 app.get("/api/file", async (req, res) => {
   try {
-    if (activeSessionId != null) {
+    if (activeSessionId != null && activeSessionId !== req.query.sessionId) {
       throw new Error("Session already exists");
     }
 
-    const content = await fs.readFile(targetFile, "utf8");
     const sessionId = randomUUID();
     activeSessionId = sessionId;
+
+    const content = await fs.readFile(targetFile, "utf8");
     res.json({
       name: path.basename(targetFile),
       fullPath: targetFile,
@@ -140,10 +141,16 @@ app.post("/api/close-session", async (req, res) => {
     return;
   }
 
-  setImmediate(() => {
+  setTimeout(() => {
+    
+    if(activeSessionId) {
+      console.log("Ignoring close-session request for possibly page refresh, Session still active...");
+      return;
+    }
+      
     console.log("Received close-session request, Closing session...");
     process.exit();
-  });
+  },1000);
   
 });
 

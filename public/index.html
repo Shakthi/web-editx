@@ -439,7 +439,8 @@
 
     require.config({ paths: { vs: "https://unpkg.com/monaco-editor@0.52.2/min/vs" } });
     require(["vs/editor/editor.main"], async () => {
-      const res = await fetch("/api/file");
+      let oldSessionId = sessionStorage.getItem("sessionId");
+      const res = await fetch("/api/file?sessionId=" + oldSessionId);
       if (!res.ok) {
          const {error, details} =  await res.json();
          if(details=="Session already exists"){
@@ -451,6 +452,7 @@
          return;
       }
       const { name, fullPath, content, sessionId: newSessionId } = await res.json();
+      sessionStorage.setItem("sessionId", newSessionId);
       const displayPath = fullPath || name;
       const filenameEl = document.getElementById("filename");
       if (filenameEl) {
