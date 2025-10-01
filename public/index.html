@@ -1,28 +1,370 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <title>WebEditX</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
-    html, body, #editor { height: 100%; margin: 0; }
-    #toolbar { padding: 6px; background: #222; color: #eee; }
-    #save-status { margin-left: 12px; }
-    button { margin-left: 10px; }
+    :root {
+      --color-bg: #050816;
+      --color-bg-gradient: radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.28) 0%, transparent 55%),
+        radial-gradient(circle at 100% 0%, rgba(14, 165, 233, 0.24) 0%, transparent 48%),
+        linear-gradient(135deg, rgba(15, 23, 42, 0.92) 0%, rgba(2, 6, 23, 0.94) 100%);
+      --color-surface: rgba(15, 23, 42, 0.82);
+      --color-border: rgba(148, 163, 184, 0.18);
+      --color-overlay: rgba(148, 163, 184, 0.08);
+      --color-text: #e2e8f0;
+      --color-subtle: #94a3b8;
+      --color-accent: #6366f1;
+      --color-accent-strong: #4338ca;
+      --color-success: #22c55e;
+      --color-warning: #facc15;
+      --color-error: #f87171;
+      --radius-lg: 18px;
+      --radius-pill: 999px;
+      --shadow-soft: 0 35px 60px -32px rgba(15, 23, 42, 0.9);
+      --transition-base: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+      font-family: "Inter", "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      background: var(--color-bg);
+      background-image: var(--color-bg-gradient);
+      color: var(--color-text);
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      min-height: 100vh;
+      padding: clamp(16px, 3vw, 32px);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 50% 120%, rgba(99, 102, 241, 0.2), transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app-shell {
+      position: relative;
+      z-index: 1;
+      width: min(1200px, 100%);
+      display: flex;
+      flex-direction: column;
+      min-height: clamp(640px, 85vh, 940px);
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      backdrop-filter: blur(26px);
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: clamp(14px, 2vw, 20px) clamp(18px, 2.5vw, 28px);
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.7) 100%);
+      border-bottom: 1px solid var(--color-border);
+      gap: 18px;
+    }
+
+    .toolbar-left,
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .file-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 16px;
+      background: rgba(99, 102, 241, 0.14);
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(99, 102, 241, 0.28);
+      color: #f8fafc;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+
+    .file-badge__icon {
+      display: inline-flex;
+      width: 22px;
+      height: 22px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      background: rgba(99, 102, 241, 0.25);
+      color: rgba(226, 232, 240, 0.86);
+      font-size: 0.85rem;
+    }
+
+    .file-badge__name {
+      white-space: nowrap;
+      max-width: clamp(140px, 18vw, 320px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      background: rgba(148, 163, 184, 0.14);
+      color: var(--color-subtle);
+      transition: background var(--transition-base), color var(--transition-base);
+    }
+
+    .status-pill::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: currentColor;
+      box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.18);
+      transition: transform 180ms ease, box-shadow 220ms ease;
+    }
+
+    .status-pill[data-state="saving"] {
+      color: var(--color-warning);
+      background: rgba(250, 204, 21, 0.16);
+    }
+
+    .status-pill[data-state="saving"]::before {
+      box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.12);
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    .status-pill[data-state="unsaved"] {
+      color: #fbbf24;
+      background: rgba(250, 204, 21, 0.12);
+    }
+
+    .status-pill[data-state="saved"] {
+      color: var(--color-success);
+      background: rgba(34, 197, 94, 0.12);
+    }
+
+    .status-pill[data-state="saved"]::before {
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.14);
+      transform: scale(1.12);
+    }
+
+    button {
+      border: none;
+      background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-strong) 100%);
+      color: #f8fafc;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      padding: 0 20px;
+      height: 42px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      box-shadow: 0 12px 24px -12px rgba(99, 102, 241, 0.6);
+      transition: transform var(--transition-base), box-shadow var(--transition-base), filter 160ms ease;
+    }
+
+    button span {
+      pointer-events: none;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 30px -18px rgba(99, 102, 241, 0.72);
+    }
+
+    button:active {
+      transform: translateY(0);
+      filter: brightness(0.96);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+      box-shadow: none;
+    }
+
+    button[data-state="saving"]::after {
+      content: "";
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.65);
+      border-top-color: rgba(255, 255, 255, 0.2);
+      animation: spin 800ms linear infinite;
+    }
+
+    .workspace {
+      flex: 1;
+      padding: clamp(16px, 3vw, 28px);
+      display: flex;
+    }
+
+    .editor-card {
+      position: relative;
+      flex: 1;
+      display: flex;
+      background: rgba(2, 6, 23, 0.88);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(30, 41, 59, 0.75);
+      overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.08), 0 20px 40px -28px rgba(12, 15, 28, 0.9);
+    }
+
+    #editor {
+      width: 100%;
+      height: 100%;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      min-width: 220px;
+      max-width: clamp(220px, 32vw, 320px);
+      padding: 14px 18px;
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(99, 102, 241, 0.28);
+      color: var(--color-text);
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(16px);
+      pointer-events: none;
+      transition: opacity 200ms ease, transform 200ms ease;
+      box-shadow: 0 24px 45px -32px rgba(8, 15, 40, 0.9);
+      z-index: 10;
+    }
+
+    .toast[data-type="success"] {
+      border-color: rgba(34, 197, 94, 0.32);
+      color: #bbf7d0;
+    }
+
+    .toast[data-type="error"] {
+      border-color: rgba(248, 113, 113, 0.48);
+      color: #fecaca;
+    }
+
+    .toast--visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes pulse {
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 0.8;
+      }
+      50% {
+        transform: scale(1.2);
+        opacity: 1;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .toolbar-right {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      button {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .file-badge {
+        padding: 8px 12px;
+        width: 100%;
+        justify-content: center;
+      }
+
+      .workspace {
+        padding: 16px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      body {
+        padding: 12px;
+      }
+
+      .toast {
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+      }
+    }
   </style>
   <script src="https://unpkg.com/monaco-editor@0.52.2/min/vs/loader.js"></script>
 </head>
 <body>
-  <div id="toolbar">
-    <span id="filename"></span>    
-    <button onclick="saveFile()">💾 Save</button>
-    <span id="save-status"></span>
+  <div class="app-shell">
+    <header id="toolbar" class="toolbar">
+      <div class="toolbar-left">
+        <div class="file-badge" title="Active file">
+          <span class="file-badge__icon" aria-hidden="true">▣</span>
+          <span id="filename" class="file-badge__name">Loading…</span>
+        </div>
+        <div id="save-status" class="status-pill" data-state="loading">Loading…</div>
+      </div>
+      <div class="toolbar-right">
+        <button id="save-button" type="button" onclick="saveFile()">
+          <span aria-hidden="true">💾</span>
+          <span>Save</span>
+        </button>
+      </div>
+    </header>
+    <main class="workspace">
+      <div class="editor-card">
+        <div id="editor" role="region" aria-label="Code editor"></div>
+      </div>
+    </main>
   </div>
-  <div id="editor"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
     let editor, currentFile, sessionId = null, hasClosedSession = false;
     let lastSavedValue = "";
     let isSaving = false;
+    let toastTimeout;
 
     const SECURITY_COOKIE = "webeditxSecurityAccepted";
     const SECURITY_COOKIE_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
@@ -68,14 +410,7 @@
 
       if (!alreadyAccepted) {
         const proceed = confirm(
-          `⚠️ Security Warning: Understand the risks before proceeding:
-
-1. Your file data may be readable by the tunnel.
-2. Browser extensions and third-party npm scripts might access the data.
-3. File data is sent over the internet and could be exposed.
-4. There is currently no ideal way to encrypt this data end-to-end here.
-
-Do you want to continue?`
+          `⚠️ Security Warning: Understand the risks before proceeding:\n\n1. Your file data may be readable by the tunnel.\n2. Browser extensions and third-party npm scripts might access the data.\n3. File data is sent over the internet and could be exposed.\n4. There is currently no ideal way to encrypt this data end-to-end here.\n\nDo you want to continue?`
         );
 
         if (!proceed) {
@@ -90,8 +425,10 @@ Do you want to continue?`
     require(["vs/editor/editor.main"], async () => {
       const res = await fetch("/api/file");
       const { name, content, sessionId: newSessionId } = await res.json();
-      document.getElementById("filename").textContent = name;
-      updateSaveStatus("saved");
+      const filenameEl = document.getElementById("filename");
+      if (filenameEl) {
+        filenameEl.textContent = name;
+      }
       currentFile = name;
       sessionId = newSessionId;
       editor = monaco.editor.create(document.getElementById("editor"), {
@@ -112,10 +449,18 @@ Do you want to continue?`
       });
     });
 
-    async function saveFile(shouldAlert = true) {
+    async function saveFile(shouldNotify = true) {
+      if (!editor) {
+        if (shouldNotify) {
+          showToast("Editor is still loading", "error");
+        }
+        return;
+      }
+
       try {
         const payload = editor.getValue();
         isSaving = true;
+        setSaveButtonBusy(true);
         updateSaveStatus("saving");
         const response = await fetch("/api/file", {
           method: "POST",
@@ -135,27 +480,42 @@ Do you want to continue?`
         lastSavedValue = payload;
         updateSaveStatus("saved");
 
-        if (shouldAlert) {
-          alert("✅ File saved!");
+        if (shouldNotify) {
+          showToast("File saved", "success");
         }
       } catch (error) {
         console.error("Failed to save file", error);
         updateSaveStatus("unsaved");
-        if (shouldAlert) {
-          alert("❌ Failed to save file. Check console for details.");
-        }
+        showToast("Failed to save file", "error");
       } finally {
         isSaving = false;
+        setSaveButtonBusy(false);
       }
     }
 
     document.addEventListener("keydown", function (e) {
-    // Check for Ctrl+S (or Cmd+S on Mac)
-    if ((e.ctrlKey || e.metaKey) && e.key === "s") {
-      e.preventDefault(); // Stop browser default "Save Page As..."
-      saveFile(false); // Call your custom save logic
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault();
+        saveFile(false);
+      }
+    });
+
+    function setSaveButtonBusy(state) {
+      const button = document.getElementById("save-button");
+      if (!button) {
+        return;
+      }
+
+      if (state) {
+        button.dataset.state = "saving";
+        button.disabled = true;
+        button.setAttribute("aria-busy", "true");
+      } else {
+        button.removeAttribute("data-state");
+        button.disabled = false;
+        button.removeAttribute("aria-busy");
+      }
     }
-  });
 
     function updateSaveStatus(state) {
       if (isSaving && state === "saved" && editor?.getValue() !== lastSavedValue) {
@@ -167,17 +527,44 @@ Do you want to continue?`
         return;
       }
 
+      el.dataset.state = state;
+
       switch (state) {
         case "saving":
-          el.textContent = "(Saving...)";
+          el.textContent = "Saving…";
           break;
         case "unsaved":
-          el.textContent = "(⚠️ Unsaved changes)";
+          el.textContent = "Unsaved changes";
+          break;
+        case "saved":
+          el.textContent = "Saved";
+          break;
+        case "loading":
+          el.textContent = "Loading…";
           break;
         default:
-          el.textContent = "";
+          el.textContent = "Ready";
           break;
       }
+    }
+
+    function showToast(message, type = "info") {
+      const toast = document.getElementById("toast");
+      if (!toast) {
+        return;
+      }
+
+      toast.textContent = message;
+      if (type === "info") {
+        toast.removeAttribute("data-type");
+      } else {
+        toast.dataset.type = type;
+      }
+      toast.classList.add("toast--visible");
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove("toast--visible");
+      }, type === "error" ? 5000 : 2400);
     }
 
     function closeEditor() {
@@ -193,18 +580,15 @@ Do you want to continue?`
       }
     }
 
-    window.addEventListener("pagehide", (event) => {
+    window.addEventListener("pagehide", () => {
       closeEditor();
-      console.log("Page is being closed/unloaded.");
     });
 
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "hidden") {
-        console.log("Tab hidden or closed, saving session...");
         closeEditor();
       }
     });
   </script>
 </body>
-
 </html>
