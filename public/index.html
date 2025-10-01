@@ -130,10 +130,10 @@
       background: rgba(79, 70, 229, 0.1);
       font-weight: 500;
       font-size: 0.85rem;
-      max-width: clamp(140px, 24vw, 260px);
+      flex: 1 1 auto;
+      min-width: 0;
+      max-width: none;
       overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
     }
 
     .file-badge__icon {
@@ -145,6 +145,18 @@
       border-radius: 5px;
       background: rgba(79, 70, 229, 0.22);
       font-size: 0.7rem;
+    }
+
+    .file-badge__path {
+      display: inline-flex;
+      align-items: center;
+      font-family: "SFMono-Regular", "Consolas", "Menlo", monospace;
+      font-size: 0.8rem;
+      color: var(--text-primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
     }
 
     .status-pill {
@@ -340,13 +352,12 @@
         <span class="brand-mark" aria-hidden="true">WX</span>
         <div class="brand-text">
           <span class="brand-title">WebEditX</span>
-          <span class="brand-subtitle">Remote editing, simplified</span>
         </div>
       </div>
       <div class="session-meta">
-        <div class="file-badge" title="Active file">
+        <div class="file-badge" title="Active file path">
           <span class="file-badge__icon" aria-hidden="true">▣</span>
-          <span id="filename">Loading…</span>
+          <span id="filename" class="file-badge__path">Loading…</span>
         </div>
         <div id="save-status" class="status-pill" data-state="loading">Loading…</div>
       </div>
@@ -429,13 +440,16 @@
     require.config({ paths: { vs: "https://unpkg.com/monaco-editor@0.52.2/min/vs" } });
     require(["vs/editor/editor.main"], async () => {
       const res = await fetch("/api/file");
-      const { name, content, sessionId: newSessionId } = await res.json();
+      const { name, fullPath, content, sessionId: newSessionId } = await res.json();
+      const displayPath = fullPath || name;
       const filenameEl = document.getElementById("filename");
       if (filenameEl) {
-        filenameEl.textContent = name;
+        filenameEl.textContent = displayPath;
+        filenameEl.setAttribute("title", displayPath);
+        filenameEl.parentElement?.setAttribute("title", displayPath);
       }
-      document.title = `WebEditX · ${name}`;
-      currentFile = name;
+      document.title = `WebEditX · ${displayPath}`;
+      currentFile = displayPath;
       sessionId = newSessionId;
       editor = monaco.editor.create(document.getElementById("editor"), {
         value: content,

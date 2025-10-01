@@ -71,7 +71,12 @@ app.get("/api/file", async (req, res) => {
     const content = await fs.readFile(targetFile, "utf8");
     const sessionId = randomUUID();
     activeSessionId = sessionId;
-    res.json({ name: path.basename(targetFile), content, sessionId });
+    res.json({
+      name: path.basename(targetFile),
+      fullPath: targetFile,
+      content,
+      sessionId,
+    });
   } catch (err) {
     res.status(500).json({ error: "Could not read file", details: err.message });
   }
