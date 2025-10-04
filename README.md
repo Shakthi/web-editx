@@ -95,6 +95,7 @@ npx web-editx test.txt
 - Refreshed the browser UI with a slimmer toolbar and denser layout so the Monaco editor gets nearly the full viewport 
 - Reworked status feedback: toast notifications now show saving/unsaved/success states 
 - Security warning dialog is clearer and, once accepted, the consent is remembered via  localtunnel cookie 
+- Fixing reload of current editor page closing the session
 
 ---
 
