@@ -1,6 +1,6 @@
 {
   "name": "web-editx",
-  "version": "1.4.0-alpha.0",
+  "version": "1.4.0-alpha.1",
   "description": "Quick browser-based editor for local file (npx web-editx ./file)",
   "bin": {
     "web-editx": "./bin/edit.js"
