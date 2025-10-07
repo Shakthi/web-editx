@@ -89,7 +89,7 @@ npx web-editx test.txt
 
 ## 📝 Change Notes
 
-### v1.4.0 (unreleased)
+### v1.4.0
 
 **Changed**  
 - Refreshed the browser UI with a slimmer toolbar and denser layout so the Monaco editor gets nearly the full viewport 
