@@ -1,76 +1,87 @@
 # Web-EditX
 
-> Edit any file from your terminal in a **browser-based editor** (no more struggling with `vi` or `nano`!).
+> A **simple browser-based file editor** for developers and sysadmins who just want to edit files without fighting `vi` or `nano`.
 
 ---
 
-## 🚀 Install & Run
+## 💡 Why Web-EditX
 
-You don’t need to install globally — just run with **npx**:
+If you’ve ever SSH’ed into a remote server and struggled with unfamiliar key bindings or broken terminals — this tool is for you.  
+Run a single command, open a browser, and edit files with a clean, familiar interface powered by Monaco (VS Code editor).
+
+No setup, no dependencies, no frustration.
+
+---
+
+## ⚡ Quick Start
 
 ```bash
-npx web-editx myfile.txt
+npx web-editx /path/to/file.txt
 ```
 
-➡️ This will:  
-1. Start a local web server (default: `http://localhost:3000`)  
-2. Open the file in your default browser with a Monaco (VS Code-like) editor  
-3. Save changes back directly to the file  
-4. (Optional) expose the session remotely with `--localtunnel`
+That’s it.  
+Web-EditX will:
+
+1. Start a lightweight local web editor (default: `http://localhost:3000`)
+2. Load your file directly into the editor
+3. Save changes back to disk instantly  
+4. Optionally make the editor accessible remotely with `--localtunnel`
 
 ---
 
-## ✨ Features
+## 🧰 Typical Use Cases
 
-- 🖥️ **Browser editor** — edit in a familiar GUI instead of terminal editors  
-- 📂 **Full-path file focus** — works like `nano filename.txt`, but with the complete path surfaced in the toolbar  
-- 💾 **Save back to disk** — no copy/paste or manual upload required  
-- 🌐 **Optional remote tunnel** — share the editor over the internet with `--localtunnel`  
-- 🔒 **Local-first** — runs only on your machine unless you opt in to tunneling  
-- 🎨 **Syntax highlighting** (planned) — auto-detect based on file extension  
+- Quickly fix config files on a remote machine via SSH  
+- Edit log files or `.env` files with full text visibility  
+- Update scripts or JSON/YAML files without `vim` gymnastics  
+- Hand off a file to a teammate securely with a temporary tunnel
 
+---
 
-## 📦 Example Usage
+## 🪄 Examples
 
-Edit a config file:
+Edit a server config:
 
 ```bash
 npx web-editx /etc/nginx/nginx.conf
 ```
 
-Edit a script:
+Fix a startup script:
 
 ```bash
-npx web-editx server.js
+npx web-editx startup.sh
 ```
 
-Share a file securely with a teammate using a temporary tunnel:
+Open access for a teammate (temporary, password-protected):
 
 ```bash
-npx web-editx notes.md --localtunnel
+npx web-editx /var/www/html/index.html --localtunnel
 ```
 
 ---
 
 ## ⚙️ Options
 
-- `PORT=4000 npx web-editx file.txt` → start on custom port  
-- `npx web-editx file.txt --localtunnel` → create a temporary [localtunnel](https://github.com/localtunnel/localtunnel) URL (prompts once for the tunnel password)
+| Command | Description |
+|----------|--------------|
+| `PORT=4000 npx web-editx file.txt` | Start on a specific port |
+| `npx web-editx file.txt --localtunnel` | Create a temporary public tunnel via [localtunnel](https://github.com/localtunnel/localtunnel) |
 
-When the tunnel flag is provided, the CLI fetches the current localtunnel password from `https://loca.lt/mytunnelpassword` and prints it alongside the generated URL. You’ll need to share both with anyone connecting.
-
-## 🔐 Security Notes
-
-- The tunnel feature routes traffic through localtunnel’s infrastructure — treat it as temporary and low-trust.  
-- The app intentionally surfaces a prominent warning in the browser when it detects a non-localhost host.  
-- Avoid tunnelling highly sensitive files; there is no end-to-end encryption beyond HTTPS provided by localtunnel.  
-- Revoke access by stopping the CLI process; this immediately tears down the temporary URL.
+When using `--localtunnel`, the CLI retrieves a random tunnel password from `https://loca.lt/mytunnelpassword` and displays it with the public URL.  
+Share both only with people you trust.
 
 ---
 
-## 🛠️ Development
+## 🔒 Security
 
-Clone the repo:
+- Local-first by default — nothing leaves your machine unless you enable tunneling.  
+- The browser clearly warns if it detects a non-localhost session.  
+- HTTPS is handled by localtunnel; no extra encryption layer is added.  
+- To revoke access, simply stop the CLI — the tunnel closes immediately.
+
+---
+
+## 🧑‍💻 Development Setup
 
 ```bash
 git clone https://github.com/shakthi/web-editx.git
@@ -79,7 +90,7 @@ npm install
 npm link
 ```
 
-Run locally:
+Then test locally:
 
 ```bash
 npx web-editx test.txt
@@ -87,18 +98,18 @@ npx web-editx test.txt
 
 ---
 
-## 📝 Change Notes
+## 🧾 Version Highlights
 
 ### v1.4.0
 
-**Changed**  
-- Refreshed the browser UI with a slimmer toolbar and denser layout so the Monaco editor gets nearly the full viewport 
-- Reworked status feedback: toast notifications now show saving/unsaved/success states 
-- Security warning dialog is clearer and, once accepted, the consent is remembered via  localtunnel cookie 
-- Fixing reload of current editor page closing the session
+**Improved**
+- Compact, responsive toolbar for maximum editing area  
+- Clearer save status indicators (saving / unsaved / success)  
+- Persistent consent for tunnel security warnings  
+- Reloading a page no longer terminates the editing session  
 
 ---
 
-## 📜 License
+## 📄 License
 
-MIT © 2025 Shakthi Prasad GS
+MIT © 2025 Shakthi Prasad G S
