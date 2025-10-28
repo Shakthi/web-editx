@@ -3,24 +3,29 @@
   "version": "1.4.1",
   "description": "Quick browser-based editor for local file (npx web-editx ./file)",
   "bin": {
-    "web-editx": "./bin/edit.js"
+    "web-editx": "bin/edit.js"
   },
   "type": "module",
   "scripts": {
     "start": "node ./bin/edit.js"
   },
   "keywords": [
-    "editor",
+    "web-editor",
+    "code-editor",
     "browser",
     "cli",
     "npx",
-    "monaco",
-    "file-manager"
+    "monaco-editor",
+    "editor",
+    "nano",
+    "vi",
+    "ssh",
+    "remote"
   ],
   "author": "Shakthi Prasad GS",
   "repository": {
     "type": "git",
-    "url": "https://github.com/shakthi/web-editx"
+    "url": "git+https://github.com/shakthi/web-editx.git"
   },
   "license": "MIT",
   "dependencies": {
