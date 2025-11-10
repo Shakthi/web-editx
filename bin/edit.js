@@ -6,6 +6,7 @@ import fs from "fs/promises";
 import { randomUUID } from "crypto";
 import { fileURLToPath } from "url";
 import localtunnel from 'localtunnel'
+import os from "os";
 
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -20,6 +21,23 @@ const isLocaltunnel = process.argv[3] === "--localtunnel";
 let activeSessionId = null;
 
 app.set("trust proxy", true);
+
+function getLocalIpAddresses() {
+  const networks = os.networkInterfaces();
+  const ips = [];
+
+  for (const iface of Object.values(networks)) {
+    if (!iface) continue;
+
+    for (const address of iface) {
+      if (address.family === "IPv4" && !address.internal) {
+        ips.push(address.address);
+      }
+    }
+  }
+
+  return ips;
+}
 
 function resolveSecurityCookieOptions(req) {
   const hostHeader = req.headers.host || "";
@@ -160,6 +178,11 @@ app.listen(PORT, () => {
     if(!isLocaltunnel){
       console.log(`➡️  Open http://localhost:${PORT} to edit in browser`);
       open(`http://localhost:${PORT}`);
+      const localIps = getLocalIpAddresses();
+      if (localIps.length > 0) {
+        console.log("\n📡 Local network access:");
+        localIps.forEach((ip) => console.log(`➡️  http://${ip}:${PORT}`));
+      }
 
       console.log(`\nNot able to access http://localhost:${PORT} ?`);
       console.log(`Try tunneling this with localtunnel: npx web-editx ${process.argv[2] } --localtunnel`); 
