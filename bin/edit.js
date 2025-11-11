@@ -4,6 +4,7 @@ import open from "open";
 import path from "path";
 import fs from "fs/promises";
 import readline from "readline";
+import net from "net";
 import { randomUUID } from "crypto";
 import { fileURLToPath } from "url";
 import localtunnel from 'localtunnel'
@@ -83,6 +84,36 @@ function promptCreateFile(filePath) {
   });
 }
 
+function handlePortError(err) {
+  if (err.code === "EADDRINUSE") {
+    const NEWPORT = Math.floor(Math.random() * 9000) + 3000;
+    console.error(`❌ Port ${PORT} already in use. Try another: PORT=${NEWPORT} npx web-editx ${process.argv[2]} ${process.argv[3] ?? ""}`);
+    process.exit(1);
+  }
+
+  throw err;
+}
+
+function ensurePortAvailable(port) {
+  return new Promise((resolve, reject) => {
+    const tester = net.createServer();
+
+    tester.once("error", (err) => {
+      if (tester.listening) {
+        tester.close(() => reject(err));
+      } else {
+        reject(err);
+      }
+    });
+
+    tester.once("listening", () => {
+      tester.close(() => resolve(true));
+    });
+
+    tester.listen(port);
+  });
+}
+
 async function ensureTargetFile(filePath) {
   try {
     const stats = await fs.stat(filePath);
@@ -109,6 +140,12 @@ async function ensureTargetFile(filePath) {
     }
     process.exit(1);
   }
+}
+
+try {
+  await ensurePortAvailable(PORT);
+} catch (err) {
+  handlePortError(err);
 }
 
 await ensureTargetFile(targetFile);
@@ -242,13 +279,4 @@ app.listen(PORT, () => {
 
     
 
-}).on("error", (err) => {
-    if (err.code === "EADDRINUSE") {
-        //Generate random 4 digit 3000+ port
-        const NEWPORT = Math.floor(Math.random() * 9000) + 3000;
-        console.error(`❌ Port ${PORT} already in use. Try another: PORT=${NEWPORT} npx web-editx ${process.argv[2]} ${process.argv[3]??""}`);
-        process.exit(1);
-    } else {
-        throw err;
-    }
-});
+}).on("error", handlePortError);
