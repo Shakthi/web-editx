@@ -3,6 +3,7 @@ import express from "express";
 import open from "open";
 import path from "path";
 import fs from "fs/promises";
+import readline from "readline";
 import { randomUUID } from "crypto";
 import { fileURLToPath } from "url";
 import localtunnel from 'localtunnel'
@@ -62,6 +63,26 @@ function resolveSecurityCookieOptions(req) {
   return options;
 }
 
+function promptCreateFile(filePath) {
+  if (!process.stdin.isTTY || !process.stdout.isTTY) {
+    return Promise.resolve(false);
+  }
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  const question = `Target file "${filePath}" does not exist. Create it? (y/N): `;
+
+  return new Promise((resolve) => {
+    rl.question(question, (answer = "") => {
+      rl.close();
+      resolve(/^y(es)?$/i.test(answer.trim()));
+    });
+  });
+}
+
 async function ensureTargetFile(filePath) {
   try {
     const stats = await fs.stat(filePath);
@@ -71,7 +92,18 @@ async function ensureTargetFile(filePath) {
     }
   } catch (err) {
     if (err.code === "ENOENT") {
-      console.error("Target file does not exist:", filePath);
+      if (await promptCreateFile(filePath)) {
+        try {
+          await fs.mkdir(path.dirname(filePath), { recursive: true });
+          await fs.writeFile(filePath, "", "utf8");
+          console.log("✅ Created new file:", filePath);
+          return;
+        } catch (createErr) {
+          console.error("Failed to create file:", createErr.message);
+        }
+      } else {
+        console.error("Target file does not exist:", filePath);
+      }
     } else {
       console.error("Unable to access target file:", err.message);
     }
