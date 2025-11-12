@@ -13,13 +13,13 @@ import os from "os";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-const PORT = process.env.PORT || 3000;
 const SECURITY_COOKIE_NAME = "webeditxSecurityAccepted";
 const SECURITY_COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 // Get target file from CLI args
 const targetFile = path.resolve(process.argv[2] || process.cwd());
 const isLocaltunnel = process.argv[3] === "--localtunnel";
+const PORT = resolvePort(isLocaltunnel);
 let activeSessionId = null;
 
 app.set("trust proxy", true);
@@ -92,6 +92,24 @@ function handlePortError(err) {
   }
 
   throw err;
+}
+
+function randomLocaltunnelPort(min = 30000, max = 60000) {
+  const upperBound = Math.max(min + 1, max);
+  return Math.floor(Math.random() * (upperBound - min)) + min;
+}
+
+function resolvePort(isLocaltunnelFlag) {
+  const envPort = Number(process.env.PORT);
+  if (Number.isInteger(envPort) && envPort > 0) {
+    return envPort;
+  }
+
+  if (isLocaltunnelFlag) {
+    return randomLocaltunnelPort();
+  }
+
+  return 3000;
 }
 
 function ensurePortAvailable(port) {
