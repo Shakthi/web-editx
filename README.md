@@ -100,6 +100,13 @@ npx web-editx test.txt
 
 ## 🧾 Version Highlights
 
+### v1.5.0
+
+**Minor changes**
+- Prompt to create missing target files, so you can bootstrap new files without leaving the CLI.
+- Pre-flight port availability checks with clearer fallback messaging when the chosen port is busy.
+- Localtunnel runs on a random high port by default for more reliable remote editing sessions.
+
 ### v1.4.0
 
 **Improved**

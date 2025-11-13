@@ -3,23 +3,43 @@ import express from "express";
 import open from "open";
 import path from "path";
 import fs from "fs/promises";
+import readline from "readline";
+import net from "net";
 import { randomUUID } from "crypto";
 import { fileURLToPath } from "url";
 import localtunnel from 'localtunnel'
+import os from "os";
 
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-const PORT = process.env.PORT || 3000;
 const SECURITY_COOKIE_NAME = "webeditxSecurityAccepted";
 const SECURITY_COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 // Get target file from CLI args
 const targetFile = path.resolve(process.argv[2] || process.cwd());
 const isLocaltunnel = process.argv[3] === "--localtunnel";
+const PORT = resolvePort(isLocaltunnel);
 let activeSessionId = null;
 
 app.set("trust proxy", true);
+
+function getLocalIpAddresses() {
+  const networks = os.networkInterfaces();
+  const ips = [];
+
+  for (const iface of Object.values(networks)) {
+    if (!iface) continue;
+
+    for (const address of iface) {
+      if (address.family === "IPv4" && !address.internal) {
+        ips.push(address.address);
+      }
+    }
+  }
+
+  return ips;
+}
 
 function resolveSecurityCookieOptions(req) {
   const hostHeader = req.headers.host || "";
@@ -44,6 +64,74 @@ function resolveSecurityCookieOptions(req) {
   return options;
 }
 
+function promptCreateFile(filePath) {
+  if (!process.stdin.isTTY || !process.stdout.isTTY) {
+    return Promise.resolve(false);
+  }
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  const question = `Target file "${filePath}" does not exist. Create it? (y/N): `;
+
+  return new Promise((resolve) => {
+    rl.question(question, (answer = "") => {
+      rl.close();
+      resolve(/^y(es)?$/i.test(answer.trim()));
+    });
+  });
+}
+
+function handlePortError(err) {
+  if (err.code === "EADDRINUSE") {
+    const NEWPORT = Math.floor(Math.random() * 9000) + 3000;
+    console.error(`❌ Port ${PORT} already in use. Try another: PORT=${NEWPORT} npx web-editx ${process.argv[2]} ${process.argv[3] ?? ""}`);
+    process.exit(1);
+  }
+
+  throw err;
+}
+
+function randomLocaltunnelPort(min = 30000, max = 60000) {
+  const upperBound = Math.max(min + 1, max);
+  return Math.floor(Math.random() * (upperBound - min)) + min;
+}
+
+function resolvePort(isLocaltunnelFlag) {
+  const envPort = Number(process.env.PORT);
+  if (Number.isInteger(envPort) && envPort > 0) {
+    return envPort;
+  }
+
+  if (isLocaltunnelFlag) {
+    return randomLocaltunnelPort();
+  }
+
+  return 3000;
+}
+
+function ensurePortAvailable(port) {
+  return new Promise((resolve, reject) => {
+    const tester = net.createServer();
+
+    tester.once("error", (err) => {
+      if (tester.listening) {
+        tester.close(() => reject(err));
+      } else {
+        reject(err);
+      }
+    });
+
+    tester.once("listening", () => {
+      tester.close(() => resolve(true));
+    });
+
+    tester.listen(port);
+  });
+}
+
 async function ensureTargetFile(filePath) {
   try {
     const stats = await fs.stat(filePath);
@@ -53,12 +141,29 @@ async function ensureTargetFile(filePath) {
     }
   } catch (err) {
     if (err.code === "ENOENT") {
-      console.error("Target file does not exist:", filePath);
+      if (await promptCreateFile(filePath)) {
+        try {
+          await fs.mkdir(path.dirname(filePath), { recursive: true });
+          await fs.writeFile(filePath, "", "utf8");
+          console.log("✅ Created new file:", filePath);
+          return;
+        } catch (createErr) {
+          console.error("Failed to create file:", createErr.message);
+        }
+      } else {
+        console.error("Target file does not exist:", filePath);
+      }
     } else {
       console.error("Unable to access target file:", err.message);
     }
     process.exit(1);
   }
+}
+
+try {
+  await ensurePortAvailable(PORT);
+} catch (err) {
+  handlePortError(err);
 }
 
 await ensureTargetFile(targetFile);
@@ -160,6 +265,11 @@ app.listen(PORT, () => {
     if(!isLocaltunnel){
       console.log(`➡️  Open http://localhost:${PORT} to edit in browser`);
       open(`http://localhost:${PORT}`);
+      const localIps = getLocalIpAddresses();
+      if (localIps.length > 0) {
+        console.log("\n📡 Local network access:");
+        localIps.forEach((ip) => console.log(`➡️  http://${ip}:${PORT}`));
+      }
 
       console.log(`\nNot able to access http://localhost:${PORT} ?`);
       console.log(`Try tunneling this with localtunnel: npx web-editx ${process.argv[2] } --localtunnel`); 
@@ -187,13 +297,4 @@ app.listen(PORT, () => {
 
     
 
-}).on("error", (err) => {
-    if (err.code === "EADDRINUSE") {
-        //Generate random 4 digit 3000+ port
-        const NEWPORT = Math.floor(Math.random() * 9000) + 3000;
-        console.error(`❌ Port ${PORT} already in use. Try another: PORT=${NEWPORT} npx web-editx ${process.argv[2]} ${process.argv[3]??""}`);
-        process.exit(1);
-    } else {
-        throw err;
-    }
-});
+}).on("error", handlePortError);
